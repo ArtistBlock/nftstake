@@ -1,4 +1,3 @@
-/* eslint-disable react/jsx-key */
 import { useContract, useAddress, Web3Button, ThirdwebNftMedia, useOwnedNFTs, useContractRead, } from "@thirdweb-dev/react";
 import { BigNumber, ethers } from "ethers";
 import type { NextPage } from "next";
@@ -18,17 +17,17 @@ const Stake: NextPage = () => {
   const { contract: stakingContract } = useContract(stakingAddress);
 
   const { data: mySegNFTs } = useOwnedNFTs(segContract, address);
-  const { data: stakedSegNFTs } = useContractRead(stakingContract, "getStakeInfo", address);
+  const { data: stakedSegNFTs } = useContractRead(stakingContract, "getStakeInfo", [address]);
 
   async function stakeNFT(nftId: string) {
-    if(!address) return;
+    if (!address || !stakingContract) return;
 
     const isApproved = await segContract?.isApproved(
       address,
       stakingAddress
     );
 
-    if(!isApproved) {
+    if (!isApproved) {
       await segContract?.setApprovalForAll(stakingAddress, true);
     }
 
@@ -40,54 +39,51 @@ const Stake: NextPage = () => {
   useEffect(() => {
     if (!stakingContract || !address) return;
 
-    async function LoadClaimableRewads() {
-      const stakeInfo = await stakingContract?.call("getStakeInfo", address);
-      setClaimableRewards(stakeInfo[1]);
+    async function loadClaimableRewards() {
+      const stakeInfo = await stakingContract?.call("getStakeInfo", [address]);
+      setClaimableRewards(stakeInfo?.[1]);
     }
-    LoadClaimableRewads();
+
+    loadClaimableRewards();
   }, [address, stakingContract]);
 
-  function stake(id: string): any {
-    throw new Error("Function not implemented.");
-  }
-
   return (
-  <div className={styles.container}>
+    <div className={styles.container}>
       <Header />
-    <main className={styles.main}>
-    <h1>Start Staking</h1>
-      <div>
-        {mySegNFTs?.map((nft) => (
-          <div>
-            <h3>{nft.metadata.name}</h3>
-            <ThirdwebNftMedia
-              metadata={nft.metadata}
-              height="100px"
-              width="100px"
-            />
-            <Web3Button
-              contractAddress={stakingAddress}
-              action={() => stakeNFT(nft.metadata.id)}
-            >Stake NFT</Web3Button>
-          </div>
-        ))}
-      </div>
-      <h1>Steking</h1>
-      <div>
-        {stakedSegNFTs && stakedSegNFTs[0].map((stakedNFT: BigNumber) => (
-          <div key={stakedNFT.toString()}>
-            <NFTCard tokenId={stakedNFT.toNumber()} />
-          </div>
-        ))}
-      </div>
-      <br />
-      <h1>Claimable</h1>
-      {!claimableRewards ? "Losding..." : ethers.utils.formatUnits(claimableRewards, 18)}
-      <Web3Button
-        contractAddress={stakingAddress}
-        action={(stakingContract) => stakingContract.call("claimRewards")}
-      >Claim Token</Web3Button>
-    </main>
+      <main className={styles.main}>
+        <h1>Start Staking</h1>
+        <div>
+          {mySegNFTs?.map((nft) => (
+            <div key={nft.metadata.id}>
+              <h3>{nft.metadata.name}</h3>
+              <ThirdwebNftMedia
+                metadata={nft.metadata}
+                height="100px"
+                width="100px"
+              />
+              <Web3Button
+                contractAddress={stakingAddress}
+                action={() => stakeNFT(nft.metadata.id)}
+              >Stake NFT</Web3Button>
+            </div>
+          ))}
+        </div>
+        <h1>Steking</h1>
+        <div>
+          {stakedSegNFTs && stakedSegNFTs[0].map((stakedNFT: BigNumber) => (
+            <div key={stakedNFT.toString()}>
+              <NFTCard tokenId={stakedNFT.toNumber()} />
+            </div>
+          ))}
+        </div>
+        <br />
+        <h1>Claimable</h1>
+        {!claimableRewards ? "Losding..." : ethers.utils.formatUnits(claimableRewards, 18)}
+        <Web3Button
+          contractAddress={stakingAddress}
+          action={(stakingContract) => stakingContract.call("claimRewards")}
+        >Claim Token</Web3Button>
+      </main>
     </div >
   );
 };

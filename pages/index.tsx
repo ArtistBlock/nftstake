@@ -14,11 +14,13 @@ const Home: NextPage = () => {
         <h1>Egg Stacking Test Project</h1>
         <p>Welcome to Egg Stacking in the BSC test network</p>
         <br/>
-        <Web3Button contractAddress="0xAbFc7687c1c2c55B39229c21de9B703dcd475E60"
-        action={(contract) => {contract.erc721.claim(1);
-        }}
-          colorMode="light"
-          accentColor="#9702c4"
+        <Web3Button
+          contractAddress="0xAbFc7687c1c2c55B39229c21de9B703dcd475E60"
+          action={(contract) => {
+            contract.erc721.claim(1);
+          }}
+          data-color-mode="light"
+          data-accent-color="#9702c4"
         >
           Claim EGG
         </Web3Button>
